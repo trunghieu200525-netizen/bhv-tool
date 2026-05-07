@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Bảo hiểm Vốn (Tối ưu Tốc độ)</title>
+    <title>Công cụ Bảo hiểm Vốn (Tối ưu Tốc độ & Giọng nói)</title>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -24,7 +24,7 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            user-select: none; /* Tránh bôi đen chữ khi nhấn giữ chuột */
+            user-select: none;
         }
 
         .container {
@@ -101,7 +101,7 @@
 
         button.listening {
             background-color: #e74c3c;
-            transform: scale(0.95); /* Hiệu ứng lún xuống khi đang nhấn giữ */
+            transform: scale(0.95);
         }
 
         .info-box {
@@ -185,7 +185,7 @@
     </div>
 
     <div class="input-group">
-        <label for="bossOrder">Lệnh Boss đi (Triệu VNĐ)</label>
+        <label for="bossOrder">Lệnh Boss đi</label>
         <div class="input-with-btn">
             <input type="number" step="0.1" id="bossOrder" placeholder="Ví dụ: 5.5" oninput="calculate()">
             <button id="micBtn" type="button" title="Nhấn giữ để nói">🎤 Giữ & Nói</button>
@@ -198,8 +198,8 @@
     </div>
     
     <div class="hint-text">
-        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột vào nút) để đọc số.<br>
-        Buông tay ra là hệ thống ngắt và nhận lệnh ngay lập tức!
+        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột) để đọc số.<br>
+        Có thể đọc: "100", "Một tỷ", "1 tỷ rưỡi", "Tỷ hai"...
     </div>
 </div>
 
@@ -236,9 +236,8 @@
         recognition.interimResults = false;
         recognition.lang = 'vi-VN';
 
-        // Hàm bắt đầu nghe
         function startListening() {
-            if (isListening) return; // Nếu đang nghe rồi thì bỏ qua
+            if (isListening) return;
             try {
                 recognition.start();
                 isListening = true;
@@ -249,24 +248,56 @@
             }
         }
 
-        // Hàm ép dừng khẩn cấp để lấy kết quả ngay
         function stopListening() {
             if (!isListening) return;
-            recognition.stop(); // Ép dừng, API sẽ trả về kết quả nó đang thu được ngay lập tức
+            recognition.stop();
             isListening = false;
             resetMicState();
         }
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript.toLowerCase().trim();
-            let cleanString = transcript.replace(',', '.');
-            let matchedNumbers = cleanString.match(/\d+(\.\d+)?/);
+            console.log("Giọng nói ghi nhận: ", transcript);
+            
+            // Xử lý chuyển chữ thành số cơ bản
+            let text = transcript
+                .replace(/một/g, '1').replace(/hai/g, '2').replace(/ba/g, '3')
+                .replace(/bốn/g, '4').replace(/năm/g, '5').replace(/sáu/g, '6')
+                .replace(/bảy/g, '7').replace(/tám/g, '8').replace(/chín/g, '9')
+                .replace(/mười/g, '10').replace(/rưỡi/g, '.5').replace(/,/g, '.');
 
-            if (matchedNumbers) {
-                bossOrderInput.value = matchedNumbers[0];
+            let finalValue = 0;
+
+            // Xử lý nếu có chữ TỶ / TỈ
+            let tyMatch = text.match(/(\d+(\.\d+)?)\s*(tỷ|tỉ)/);
+            if (tyMatch) {
+                finalValue = parseFloat(tyMatch[1]) * 1000;
+                
+                // Bắt thêm số lẻ phía sau (ví dụ: "1 tỷ 2")
+                let textConLai = text.replace(tyMatch[0], '');
+                let leMatch = textConLai.match(/\d+(\.\d+)?/);
+                if (leMatch) {
+                    let le = parseFloat(leMatch[0]);
+                    if (le > 0 && le < 10) finalValue += le * 100; // Đọc "1 tỷ 2" -> cộng 200tr
+                    else if (le >= 10 && le < 100) finalValue += le * 10; // Đọc "1 tỷ 25" -> cộng 250tr
+                    else finalValue += le; // Đọc "1 tỷ 200" -> cộng 200tr
+                }
+            } 
+            // Xử lý nếu có chữ NGÀN / NGHÌN (ví dụ Boss đi nhỏ 500 ngàn)
+            else if (text.includes('ngàn') || text.includes('nghìn') || text.includes('k')) {
+                let numMatch = text.match(/\d+(\.\d+)?/);
+                if (numMatch) finalValue = parseFloat(numMatch[0]) / 1000;
+            }
+            // Mặc định không nói đơn vị hoặc nói TRIỆU
+            else {
+                let numMatch = text.match(/\d+(\.\d+)?/);
+                if (numMatch) finalValue = parseFloat(numMatch[0]);
+            }
+
+            // Ghi kết quả vào ô nhập và tự tính
+            if (finalValue > 0) {
+                bossOrderInput.value = finalValue;
                 calculate();
-            } else {
-                console.log("Không nhận diện được số: " + transcript);
             }
         };
 
@@ -281,25 +312,20 @@
             micBtn.classList.remove('listening');
         }
 
-        // 1. Thao tác bằng chuột (Nhấn giữ chuột trái)
         micBtn.addEventListener('mousedown', startListening);
         micBtn.addEventListener('mouseup', stopListening);
-        micBtn.addEventListener('mouseleave', stopListening); // Đề phòng kéo chuột ra ngoài nút
+        micBtn.addEventListener('mouseleave', stopListening);
 
-        // 2. Thao tác trên điện thoại (Chạm và giữ)
         micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
         micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
 
-        // 3. Thao tác bằng bàn phím (Nhấn giữ phím Space)
         document.addEventListener('keydown', function(event) {
-            // !event.repeat giúp tránh việc spam lệnh bật micro khi giữ phím quá lâu
             if (event.code === 'Space' && event.target.tagName !== 'INPUT' && !event.repeat) {
                 event.preventDefault();
                 startListening();
             }
         });
 
-        // Buông phím Space
         document.addEventListener('keyup', function(event) {
             if (event.code === 'Space' && event.target.tagName !== 'INPUT') {
                 event.preventDefault();
