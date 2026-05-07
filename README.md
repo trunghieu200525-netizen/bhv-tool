@@ -3,54 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Bảo hiểm Vốn (Tối ưu Tốc độ & Giọng nói)</title>
+    <title>Công cụ Bảo hiểm Vốn (Fintech Edition)</title>
     <style>
+        /* --- ĐỊNH NGHĨA BIẾN MÀU SẮC (MÀU SẮC CHUYÊN NGHIỆP) --- */
         :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --btn-hover: #2980b9;
+            --primary-blue: #007bff; /* Xanh chính */
+            --bg-body: #f8fafc; /* Nền trắng xám */
+            --bg-card: #ffffff; /* Nền card trắng tinh */
+            --text-dark: #334155; /* Chữ chính */
+            --text-light: #64748b; /* Chữ phụ */
+            --border-color: #e2e8f0; /* Viền ô nhập */
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* Màu sắc cho các trạng thái tính toán */
+            --ratio-bg: #e0f2fe;
+            --ratio-text: #0369a1;
+            --result-bg: #ecfdf5;
+            --result-border: #a7f3d0;
+            --result-text: #047857;
+            --listen-red: #ef4444;
         }
 
+        /* --- STYLES CHO TOÀN TRANG --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-body);
+            color: var(--text-dark);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            user-select: none;
+            padding: 10px;
+            box-sizing: border-box;
+            user-select: none; /* Tránh bôi đen chữ khi nhấn giữ Space */
         }
 
+        /* --- STYLES CHO CONTAINER CHÍNH --- */
         .container {
-            background-color: var(--card-bg);
+            background-color: var(--bg-card);
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
         }
 
         h2 {
             text-align: center;
-            color: var(--primary-color);
+            color: var(--text-dark);
             margin-bottom: 5px;
+            font-weight: 700;
         }
 
         .subtitle {
             text-align: center;
-            color: #7f8c8d;
+            color: var(--text-light);
             font-size: 14px;
             margin-bottom: 25px;
-            border-bottom: 2px solid var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
 
+        /* --- STYLES CHO CÁC NHÓM NHẬP LIỆU --- */
         .input-group {
             margin-bottom: 20px;
         }
@@ -59,105 +74,115 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #555;
+            color: var(--text-dark);
+            font-size: 15px;
         }
 
         .input-with-btn {
             display: flex;
             gap: 10px;
+            align-items: stretch;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
             font-size: 16px;
+            color: var(--text-dark);
             box-sizing: border-box;
-            transition: border-color 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         input:focus {
             outline: none;
-            border-color: var(--accent-color);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
 
         button {
-            background-color: var(--accent-color);
+            background-color: var(--primary-blue);
             color: white;
             border: none;
-            padding: 0 15px;
-            border-radius: 6px;
+            padding: 0 20px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: bold;
-            transition: background-color 0.3s, transform 0.1s;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         button:hover {
-            background-color: var(--btn-hover);
+            background-color: #006ae0;
         }
 
+        /* --- STYLES TRẠNG THÁI "ĐANG NGHE" MỚI --- */
         button.listening {
-            background-color: #e74c3c;
-            transform: scale(0.95);
+            background-color: var(--listen-red);
+            transform: scale(0.96); /* Hiệu ứng lún nút */
+            animation: pulse-red 1.5s infinite; /* Hiệu ứng nhấp nháy mềm */
         }
 
-        .info-box {
-            background-color: #eef2f7;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0px rgba(239, 68, 68, 0.5); }
+            100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.0); }
         }
 
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+        /* --- STYLES CHO HIỂN THỊ TỶ LỆ --- */
+        .ratio-display {
+            background-color: var(--ratio-bg);
+            color: var(--ratio-text);
+            padding: 10px 15px;
+            border-radius: 10px;
+            display: inline-flex;
+            font-weight: 700;
+            margin-bottom: 25px;
+            font-size: 16px;
+            align-items: center;
+            gap: 5px;
         }
 
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .label-info {
-            color: #666;
-        }
-
-        .value-info {
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
+        /* --- STYLES CHO CARD KẾT QUẢ CUỐI CÙNG --- */
         .result-card {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            padding: 20px;
-            border-radius: 8px;
+            background-color: var(--result-bg);
+            border: 1.5px solid var(--result-border);
+            padding: 25px;
+            border-radius: 12px;
             text-align: center;
+            margin-top: 10px;
         }
 
         .result-label {
-            color: #155724;
-            font-size: 14px;
+            color: var(--result-text);
+            font-size: 13px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
         }
 
         .result-value {
-            color: #155724;
-            font-size: 28px;
+            color: var(--result-text);
+            font-size: 32px;
             font-weight: 800;
+            line-height: 1;
         }
         
+        /* --- STYLES CHO DÒNG CHỮ GỢI Ý PHÍA DƯỚI --- */
         .hint-text {
             text-align: center;
             font-size: 12px;
-            color: #888;
-            margin-top: 15px;
-            line-height: 1.5;
+            color: var(--text-light);
+            margin-top: 20px;
+            line-height: 1.6;
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -174,21 +199,22 @@
 
     <div class="input-group">
         <label for="userCapital">Vốn của tôi (Triệu VNĐ)</label>
-        <input type="number" id="userCapital" placeholder="Ví dụ: 20" oninput="calculate()">
+        <input type="number" id="userCapital" placeholder="Ví dụ: 5" oninput="calculate()">
     </div>
 
-    <div class="info-box">
-        <div class="info-row">
-            <span class="label-info">Tỷ lệ vốn (Tôi/Boss):</span>
-            <span class="value-info" id="ratioDisplay">0%</span>
+    <div style="text-align: center;">
+        <div class="ratio-display">
+            Tỷ lệ vốn (Tôi/Boss): <span id="ratioDisplay">0%</span>
         </div>
     </div>
 
     <div class="input-group">
         <label for="bossOrder">Lệnh Boss đi</label>
         <div class="input-with-btn">
-            <input type="number" step="0.1" id="bossOrder" placeholder="Ví dụ: 5.5" oninput="calculate()">
-            <button id="micBtn" type="button" title="Nhấn giữ để nói">🎤 Giữ & Nói</button>
+            <input type="number" step="0.1" id="bossOrder" placeholder="Ví dụ: 20" oninput="calculate()">
+            <button id="micBtn" type="button" title="Nhấn giữ để nói">
+                🎤 <span id="btnText">Giữ & Nói</span>
+            </button>
         </div>
     </div>
 
@@ -198,16 +224,19 @@
     </div>
     
     <div class="hint-text">
-        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột) để đọc lệnh.<br>
-        Có thể đọc: "100", "Một tỷ", "2 chục triệu", "Tỷ hai"...
+        💡 <b>Chế độ bộ đàm:</b> Nhấn GIỮ phím <b>Space (Phím cách)</b> bên ngoài các ô nhập (hoặc giữ chuột/chạm vào nút).<br>
+        Có thể đọc: "100", "Một tỷ", "2 chục triệu", "Tỷ hai"...<br>
+        Buông tay ra là hệ thống ngắt và nhận lệnh ngay lập tức!
     </div>
 </div>
 
 <script>
+    // Định dạng tiền tệ VNĐ (ví dụ: 1.000.000 đ)
     function formatCurrency(amount) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
+    // Hàm tính toán chính
     function calculate() {
         const bossCapital = (parseFloat(document.getElementById('bossCapital').value) || 0) * 1000000;
         const userCapital = (parseFloat(document.getElementById('userCapital').value) || 0) * 1000000;
@@ -225,9 +254,11 @@
     }
 
     const micBtn = document.getElementById('micBtn');
+    const btnText = document.getElementById('btnText');
     const bossOrderInput = document.getElementById('bossOrder');
     let isListening = false;
 
+    // Tích hợp giọng nói
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
@@ -236,18 +267,20 @@
         recognition.interimResults = false;
         recognition.lang = 'vi-VN';
 
+        // Bật micro
         function startListening() {
             if (isListening) return;
             try {
                 recognition.start();
                 isListening = true;
-                micBtn.innerText = "Đang nghe...";
+                btnText.innerText = "Đang nghe...";
                 micBtn.classList.add('listening');
             } catch (e) {
                 console.error(e);
             }
         }
 
+        // Tắt micro và lấy kết quả ngay
         function stopListening() {
             if (!isListening) return;
             recognition.stop();
@@ -255,6 +288,7 @@
             resetMicState();
         }
 
+        // Xử lý kết quả giọng nói
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript.toLowerCase().trim();
             console.log("Giọng nói ghi nhận: ", transcript);
@@ -277,43 +311,41 @@
                 .replace(/7 chục/g, '70')
                 .replace(/8 chục/g, '80')
                 .replace(/9 chục/g, '90')
-                .replace(/chục/g, '10'); // Trường hợp chỉ nói "chục triệu"
+                .replace(/chục/g, '10');
 
             let finalValue = 0;
 
-            // Xử lý nếu có chữ TỶ / TỈ
+            // Xử lý TỶ
             let tyMatch = text.match(/(\d+(\.\d+)?)\s*(tỷ|tỉ)/);
             if (tyMatch) {
                 finalValue = parseFloat(tyMatch[1]) * 1000;
-                
-                // Bắt thêm số lẻ phía sau (ví dụ: "1 tỷ 2")
                 let textConLai = text.replace(tyMatch[0], '');
                 let leMatch = textConLai.match(/\d+(\.\d+)?/);
                 if (leMatch) {
                     let le = parseFloat(leMatch[0]);
-                    if (le > 0 && le < 10) finalValue += le * 100; // Đọc "1 tỷ 2" -> cộng 200tr
-                    else if (le >= 10 && le < 100) finalValue += le * 10; // Đọc "1 tỷ 25" -> cộng 250tr
-                    else finalValue += le; // Đọc "1 tỷ 200" -> cộng 200tr
+                    if (le > 0 && le < 10) finalValue += le * 100;
+                    else if (le >= 10 && le < 100) finalValue += le * 10;
+                    else finalValue += le;
                 }
             } 
-            // Xử lý nếu có chữ NGÀN / NGHÌN (ví dụ Boss đi nhỏ 500 ngàn)
+            // Xử lý NGÀN
             else if (text.includes('ngàn') || text.includes('nghìn') || text.includes('k')) {
                 let numMatch = text.match(/\d+(\.\d+)?/);
                 if (numMatch) finalValue = parseFloat(numMatch[0]) / 1000;
             }
-            // Mặc định không nói đơn vị hoặc nói TRIỆU
+            // Mặc định TRIỆU
             else {
                 let numMatch = text.match(/\d+(\.\d+)?/);
                 if (numMatch) finalValue = parseFloat(numMatch[0]);
             }
 
-            // Ghi kết quả vào ô nhập và tự tính
             if (finalValue > 0) {
                 bossOrderInput.value = finalValue;
                 calculate();
             }
         };
 
+        // Reset trạng thái micro
         recognition.onerror = () => resetMicState();
         recognition.onend = () => {
             isListening = false;
@@ -321,17 +353,22 @@
         };
 
         function resetMicState() {
-            micBtn.innerText = "🎤 Giữ & Nói";
+            btnText.innerText = "Giữ & Nói";
             micBtn.classList.remove('listening');
         }
 
+        // --- CÁC SỰ KIỆN KÍCH HOẠT (CHẾ ĐỘ BỘ ĐÀM) ---
+
+        // 1. Chuột
         micBtn.addEventListener('mousedown', startListening);
         micBtn.addEventListener('mouseup', stopListening);
         micBtn.addEventListener('mouseleave', stopListening);
 
+        // 2. Điện thoại
         micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
         micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
 
+        // 3. Phím cách (Space) - Tốc độ cao nhất
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space' && event.target.tagName !== 'INPUT' && !event.repeat) {
                 event.preventDefault();
