@@ -198,8 +198,8 @@
     </div>
     
     <div class="hint-text">
-        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột) để đọc số.<br>
-        Có thể đọc: "100", "Một tỷ", "1 tỷ rưỡi", "Tỷ hai"...
+        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột) để đọc lệnh.<br>
+        Có thể đọc: "100", "Một tỷ", "2 chục triệu", "Tỷ hai"...
     </div>
 </div>
 
@@ -265,6 +265,19 @@
                 .replace(/bốn/g, '4').replace(/năm/g, '5').replace(/sáu/g, '6')
                 .replace(/bảy/g, '7').replace(/tám/g, '8').replace(/chín/g, '9')
                 .replace(/mười/g, '10').replace(/rưỡi/g, '.5').replace(/,/g, '.');
+
+            // Xử lý tiếng lóng "chục"
+            text = text
+                .replace(/1 chục/g, '10')
+                .replace(/2 chục/g, '20')
+                .replace(/3 chục/g, '30')
+                .replace(/4 chục/g, '40')
+                .replace(/5 chục/g, '50')
+                .replace(/6 chục/g, '60')
+                .replace(/7 chục/g, '70')
+                .replace(/8 chục/g, '80')
+                .replace(/9 chục/g, '90')
+                .replace(/chục/g, '10'); // Trường hợp chỉ nói "chục triệu"
 
             let finalValue = 0;
 
