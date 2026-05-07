@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Bảo hiểm Vốn (Tối ưu)</title>
+    <title>Công cụ Bảo hiểm Vốn (Tối ưu Tốc độ)</title>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -24,6 +24,7 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            user-select: none; /* Tránh bôi đen chữ khi nhấn giữ chuột */
         }
 
         .container {
@@ -90,7 +91,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
             white-space: nowrap;
         }
 
@@ -100,13 +101,7 @@
 
         button.listening {
             background-color: #e74c3c;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            transform: scale(0.95); /* Hiệu ứng lún xuống khi đang nhấn giữ */
         }
 
         .info-box {
@@ -162,6 +157,7 @@
             font-size: 12px;
             color: #888;
             margin-top: 15px;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -192,7 +188,7 @@
         <label for="bossOrder">Lệnh Boss đi (Triệu VNĐ)</label>
         <div class="input-with-btn">
             <input type="number" step="0.1" id="bossOrder" placeholder="Ví dụ: 5.5" oninput="calculate()">
-            <button id="micBtn" type="button" title="Bấm để nói">🎤 Nói</button>
+            <button id="micBtn" type="button" title="Nhấn giữ để nói">🎤 Giữ & Nói</button>
         </div>
     </div>
 
@@ -202,17 +198,16 @@
     </div>
     
     <div class="hint-text">
-        💡 Mẹo: Nhấn phím <b>Space (Phím cách)</b> bên ngoài các ô nhập để bật Micro nhanh.
+        💡 <b>Bộ đàm:</b> Nhấn GIỮ phím <b>Space</b> (hoặc giữ chuột vào nút) để đọc số.<br>
+        Buông tay ra là hệ thống ngắt và nhận lệnh ngay lập tức!
     </div>
 </div>
 
 <script>
-    // Định dạng tiền tệ VNĐ
     function formatCurrency(amount) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
 
-    // Tính toán
     function calculate() {
         const bossCapital = (parseFloat(document.getElementById('bossCapital').value) || 0) * 1000000;
         const userCapital = (parseFloat(document.getElementById('userCapital').value) || 0) * 1000000;
@@ -229,9 +224,9 @@
         document.getElementById('userOrderDisplay').innerText = formatCurrency(roundedUserOrder);
     }
 
-    // Cài đặt Micro
     const micBtn = document.getElementById('micBtn');
     const bossOrderInput = document.getElementById('bossOrder');
+    let isListening = false;
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -241,15 +236,26 @@
         recognition.interimResults = false;
         recognition.lang = 'vi-VN';
 
-        micBtn.onclick = () => {
+        // Hàm bắt đầu nghe
+        function startListening() {
+            if (isListening) return; // Nếu đang nghe rồi thì bỏ qua
             try {
                 recognition.start();
+                isListening = true;
                 micBtn.innerText = "Đang nghe...";
                 micBtn.classList.add('listening');
             } catch (e) {
-                console.error("Microphone đang bận hoặc lỗi: ", e);
+                console.error(e);
             }
-        };
+        }
+
+        // Hàm ép dừng khẩn cấp để lấy kết quả ngay
+        function stopListening() {
+            if (!isListening) return;
+            recognition.stop(); // Ép dừng, API sẽ trả về kết quả nó đang thu được ngay lập tức
+            isListening = false;
+            resetMicState();
+        }
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript.toLowerCase().trim();
@@ -260,32 +266,44 @@
                 bossOrderInput.value = matchedNumbers[0];
                 calculate();
             } else {
-                alert("Không nhận diện được con số: '" + transcript + "'. Vui lòng thử lại!");
+                console.log("Không nhận diện được số: " + transcript);
             }
-            resetMicState();
         };
 
-        recognition.onerror = (event) => {
-            resetMicState();
-        };
-
+        recognition.onerror = () => resetMicState();
         recognition.onend = () => {
+            isListening = false;
             resetMicState();
         };
 
         function resetMicState() {
-            micBtn.innerText = "🎤 Nói";
+            micBtn.innerText = "🎤 Giữ & Nói";
             micBtn.classList.remove('listening');
         }
 
-        // Lắng nghe phím Space để bật Micro
+        // 1. Thao tác bằng chuột (Nhấn giữ chuột trái)
+        micBtn.addEventListener('mousedown', startListening);
+        micBtn.addEventListener('mouseup', stopListening);
+        micBtn.addEventListener('mouseleave', stopListening); // Đề phòng kéo chuột ra ngoài nút
+
+        // 2. Thao tác trên điện thoại (Chạm và giữ)
+        micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
+        micBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
+
+        // 3. Thao tác bằng bàn phím (Nhấn giữ phím Space)
         document.addEventListener('keydown', function(event) {
-            // Kiểm tra nếu bấm phím Space và không đang ở trong ô input nào
+            // !event.repeat giúp tránh việc spam lệnh bật micro khi giữ phím quá lâu
+            if (event.code === 'Space' && event.target.tagName !== 'INPUT' && !event.repeat) {
+                event.preventDefault();
+                startListening();
+            }
+        });
+
+        // Buông phím Space
+        document.addEventListener('keyup', function(event) {
             if (event.code === 'Space' && event.target.tagName !== 'INPUT') {
-                event.preventDefault(); // Ngăn trình duyệt cuộn trang
-                if (!micBtn.classList.contains('listening')) {
-                    micBtn.click(); // Kích hoạt nút Nói
-                }
+                event.preventDefault();
+                stopListening();
             }
         });
 
